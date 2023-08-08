@@ -1,42 +1,41 @@
-# Semestrální práce - vyšlechtění řídící funkce pro hru Had
+# Snake AI
 ![demo](./pictures/demo.gif)
 
-## Zadání
-Pomocí genetického programování či neuroevoluce vyšlechtěte řídící funkci pro hru had
-- Pro ukázku funkčnosti je také nutné zjednodušeně implementovat samotnou hru
-- Řídící funkce se bude snažit hrát tak kvalitně jako lidský hráč, tj. nenaráží do stěn, do hada a snaží se sníst všechno náhodně vygenerované jídlo
-- Herní plocha může v každé hře změnit svou velikost, řídící funkce by na tomto neměla být závislá
-- Vizualizace vývoje neuronové sítě, aby byla čitelná pro člověka
-## Pravidla hry
-- Hrací plocha je mřížka
-- Had se může pohybovat pouze ortogonálně
-- Had zemře při nárazu do stěny herní plochy
-- Had se nemůže přestat pohybovat
-- Pokud had narazí do sebe, zemře
-- Pokaždé, když had sní jablko, poroste o jedno políčko
-- Cílem hry je dosáhnout co nevětší délky hada
-## Popis řešení
-### Zvolený algoritmus 
-K vyšlechtění řídící funkce byla použita neuroevoluce, tj. za pomocí genetického algoritmu se po generacích vylepšuje neuronová síť.
-### Neuronová síť
+## Assignment
+Using genetic programming or neuroevolution, breed a control function for the snake game
+- For demonstration purposes, it is also necessary to simplify the implementation of the game itself
+- The control function will strive to play as well as a human player, i.e., it does not run into walls, into the snake, and tries to eat all randomly generated food
+- The game board can change its size in every game, the control function should not depend on this
+- Visualization of the neural network's development, to be readable by a human
+## Game Rules
+- The playing area is a grid
+- The snake can only move orthogonally
+- The snake dies if it crashes into the wall of the playing area
+- The snake cannot stop moving
+- If the snake runs into itself, it dies
+- Every time the snake eats an apple, it grows by one square
+- The aim of the game is to achieve the greatest length of the snake
+## Solution Description
+### Chosen Algorithm 
+To breed the control function, neuroevolution was used, i.e., by using a genetic algorithm, the neural network is improved over generations.
+### Neural Network
 ![neural network](./pictures/ANN.png)
 
+- I have tried many neural network layouts, and the best performance was given by the architecture [24, 18, 4]
+- The chosen architecture consists of 3 layers - 1 input, 1 hidden, and 1 output, with 24, 18, and 4 neurons, respectively
+- Activation functions chosen are: ReLu for hidden layers and sigmoid for the output layer
+- The range of weights and biases are real numbers in the range [-1, 1]
+- The snake sees in 8 directions and always looks for an apple, walls, and its body - thus the input layer has 24 neurons
+- The first 8 neurons represent the direction of the apple (thus only one neuron is activated)
+- The next 8 neurons represent the distance of the snake's head from the walls, so the input is 1/(distance from wall)
+- The last 8 neurons represent the distance of the head from its body, again the input is 1/(distance from the body), or 0 if the body does not obstruct in that direction
 
-- Vyzkoušel jsem mnoho rozložení neuronových sítí a nejlepší výkon podala síť s architekturou [24, 18, 4]
-- Zvolená architektura je složena ze 3 vrstev - 1 vstupní, 1 schovaná a 1 výstupní, která má po řadě 24, 18 a 4 neuronů
-- Jako aktivační funkce byly zvoleny: ReLu pro skryté vrstvy a sigmoida pro výstupní vrstvu
-- Rozmezí vah a biasů jsou reálná čísla v rozmezí [-1, 1]
-- Had vidí do 8 směrů a kouká se vždy po jablku, zdech a svém těle - vstupní vrstva má tedy 24 neuronů
-- Prvních 8 neuronů představuje směr jablka (aktivuje se tedy vždy pouze jeden neuron)
-- Dalších 8 neuronů představuje vzdálenost hlavy hada od zdí, vstupem je tedy 1/(vzdálenost od zdi)
-- Posledních 8 neuronů představuje vzdálenost hlavy od svého těla, opět vstupem je 1/(vzdálenost od těla), případně 0, pokud v daném směru nepřekáží tělo hada
-
-### Genetický algoritmus
-#### Jedinec
-- Každý jedinec je tvořený vlastní neuronovou sítí - tedy váhami a biasy
-- Všechny váhy a biasy v jednotlivých vrstvách jsou uloženy v matici v podobě 2D pole
-- Každá vrsta má vlastní matici, tedy celkově genotyp jedince je realizován pomocí pole matic (3D pole)
-- Biasy a váhy jsou uloženy samostatně
+### Genetic Algorithm
+#### Individual
+- Each individual is made up of its own neural network - that is, weights and biases
+- All weights and biases in individual layers are stored in a matrix in the form of a 2D array
+- Each layer has its own matrix, so the overall genotype of an individual is implemented using an array of matrices (3D array)
+- Biases and weights are stored separately
 ```python
 class Individual:
     def __init__(self):
@@ -54,20 +53,20 @@ class NeuralNetwork:
     ...
 ```
 
-
 ![matrix](./pictures/matrices.png)
-obrázek: https://www.jeremyjordan.me/intro-to-neural-networks/
+image: https://www.jeremyjordan.me/intro-to-neural-networks/
 
-#### Fitness funkce
-- Sílu jedince určuje počet snědených jablek a doba přežití
-- Doba přežití: za každý pohyb, který had přežije dostává had 1 bod
-- Jablko: za každé snězené jablko dostává had také 1 bod
-- Fitness jedince je vypočítáno jako (doba přežití)^2 * (počet snězených jablek)
-- Jak je vidět ze vzorce, je kladen důraz na dobu přežití - had se musí naučit vyhýbat se zdem a vlastnímu tělu
-- Toto má však své nevýhody: had se začne donekonečna točit v kruhu, tím může získávat body a nemusí řešit kolize
+
+#### Fitness Function
+- The strength of an individual is determined by the number of apples eaten and the survival time.
+- Survival time: the snake gets 1 point for each move it survives.
+- Apple: the snake also gets 1 point for each apple eaten.
+- The fitness of an individual is calculated as (survival time)^2 * (number of apples eaten).
+- As seen from the formula, emphasis is placed on survival time - the snake must learn to avoid walls and its own body.
+- However, this has its disadvantages: the snake may begin to spin in a circle indefinitely, thus gaining points without needing to deal with collisions.
 ![loop](./pictures/loop.gif)
-- Řešení tohoto problém: had má nastavený počet kroků, které může provést bez snězení jablka, poté umírá hlady - tedy had je donucen aktivně hledat jablka
-- K vyhodnocení fitness je nutné odehrát celou hru:
+- Solution to this problem: the snake has a set number of steps it can take without eating an apple, after which it starves to death - thus, the snake is forced to actively seek apples.
+- To evaluate fitness, the whole game must be played:
 ```python
 class Individual:
     def play(self):
@@ -91,103 +90,13 @@ class Individual:
             time_alive += 1
     ...
 ```
-#### Operátor inicializace
-- Jedinec může být inicializován dvěma způsoby: načtěním neuronové sítě ze souboru nebo neinformovanou inicializací
-- Neinformovaná inicializace - neuronová síť je inicializována zcela náhodně, tj. pro všechny váha a biasy v maticích jsou pseudonáhodně zvoleny hodnoty v rozmezí [-1, 1]
-```python
-    class NeuralNetwork:
-        def __randomize(self):
-            config = [INPUT_LAYER] + list(HIDDEN_LAYERS) + [OUTPUT_LAYER]
-            for i in range(len(config) - 1):
-                # generate random matrices
-                self.weights.append(random.uniform(-1, 1, size=(config[i + 1], config[i])))
-                self.biases.append(transpose(random.uniform(-1, 1, size=config[i + 1])))
-        ...
-```
-#### Operátor selekce
-- Jako operátor selekce je zvolen princip ruletové selekce
-- Šance na výběr jedince ke křížení je přímo úměrná jeho fitness:
-    - Nejprve se spočítá fitness všech jedinců
-    - Poté se tyto hodnoty sečtou
-    - Vygeneruje se náhodná hodnota v rozmezí [0, suma fitness všech jedinců]
-    - Iterujeme přes podle hodnoty fitness seřazeného pole jedinců
-    - V každé iteraci akumulujeme fitness jedinců
-    - Vybereme prvního jedince, u kterého akumulovaná hodnota přesáhne tu náhodně vygenerovanou
-```python
-class GeneticAlgorithm:
-    def __roulette_wheel_selection__(self, total_fitness):
-        spin = uniform(0, total_fitness)
-        curr = 0
-        index = 0
-        while spin > curr and index < POPULATION_SIZE - 1:
-            curr += self.population[index].fitness
-            index += 1
-        return self.population[index]
-    ...
-```
-#### Operátor křížení
-- Jako operátor křížení byl zvoleno n-bodové křížení
-- Původně bylo zvoleno uniformní křížení - toto bylo však příliš rušivé a had se učil velmi pomalu až skoro vůbec
-- Postup zní následovně:
-    - Pro každou vrstu (matici) zvolíme náhodný bod
-    - Iterujeme přes všechny řady a sloupce matice
-    - Kopírujeme váhy z prvního rodiče dokud nenarazíme na náhodně vygenerovaný bod
-    - Kopírujeme váhy z druhého rodiče
-    - Toto opakujeme pro všechny vrstvy neuronové sítě
-    - To samé provedeme pro biasy
-```python
-class GeneticAlgorithm:
-    def __k_point_crossover__(self, parent1, parent2):
-        parent1_weights = parent1.neural_net.weights
-        parent2_weights = parent2.neural_net.weights
-        parent1_biases = parent1.neural_net.biases
-        parent2_biases = parent2.neural_net.biases
-        layers_count = len(HIDDEN_LAYERS) + 1
-        offspring = Individual()
-        offspring_weights = []
-        offspring_biases = []
 
-        for i in range(layers_count):
-            rows, cols = parent1_weights[i].shape
-            # generate random point
-            random_row = randint(0, rows - 1)
-            random_col = randint(0, cols - 1)
-            new_layer = []
-            # Weights
-            for row in range(rows):
-                new_row = []
-                for col in range(cols):
-                    if row <= random_row or (row == random_row and col <= random_col):
-                        weight = parent1_weights[i][row][col]
-                    else:
-                        weight = parent2_weights[i][row][col]
-                    new_row.append(weight)
-                new_layer.extend([new_row])
-            offspring_weights.append(array(new_layer))
-
-            # Biases
-            b_rows = parent1_biases[i].shape[0]
-            new_bias = []
-            # Generate random point
-            random_row = randint(0, b_rows - 1)
-            for row in range(b_rows):
-                if row < random_row:
-                    bias = parent1_biases[i][row]
-                else:
-                    bias = parent2_biases[i][row]
-                new_bias.append(bias)
-            offspring_biases.extend([transpose(array(new_bias))])
-        offspring.neural_net.weights = offspring_weights
-        offspring.neural_net.biases = offspring_biases
-        return offspring
-    ...
-```
-#### Operátor mutace
-- Jako operátor mutace je zvolen bit-flip operátor:
-    - Iterujeme přes všechny váhy a biasy
-    - Vygenerujeme náhodnou hodnotu v rozmezí [0, 1]
-    - Tuto hodnotu porovnáme se staticky nastavenou pravděpodobností mutace
-    - Pokud je vygenerovaná hodnota menší, nahradíme váhu/bias na dané pozici náhodným číslem v rozmezí [-1, 1]
+#### Mutation Operator
+- The bit-flip operator is chosen as the mutation operator:
+    - Iterate through all weights and biases.
+    - Generate a random value in the range [0, 1].
+    - Compare this value with the statically set mutation probability.
+    - If the generated value is smaller, replace the weight/bias at the given position with a random number in the range [-1, 1].
 ```python
 class GeneticAlgorithm:
     def __mutate__(self, individual):
@@ -208,10 +117,11 @@ class GeneticAlgorithm:
                     individual.neural_net.biases[i][row] = uniform(-1, 1)
     ...
 ```
-#### Elitismus
-- 90% jedinců nové generace budou tvořit potomci, které vznikli křížením a mutací
-- Abychom nemuseli objevovat již objevená řešení, přidáme nejsilnějších 10% jedinců populace do další generace
-- Nevýhody: může se stát, že řešení bude konvergovat do lokálního maxima ve vyhledávacím prostoru všech řešení
+
+#### Elitism
+- 90% of the individuals of the new generation will be made up of offspring created through crossing and mutation.
+- To avoid rediscovering already discovered solutions, we will add the strongest 10% of the population to the next generation.
+- Disadvantages: it may happen that the solution will converge to a local maximum in the search space of all solutions.
 ```python
 class GeneticAlgorithm:
     def mate(self):
@@ -230,41 +140,38 @@ class GeneticAlgorithm:
         self.generation += 1
     ...
 ```
-## Popis programu
-### Systémové požadavky
+## Program Description
+### System Requirements
 - Python 3.x.x
 - numpy 1.18.3+
 - pygame 1.9.6+
 - tkinter
 - pickle
-### Funkcionalita
-#### Hlavní nabídka
-Při spuštění programu je uživatel přivítán hlavní nabídkou, odtud může spustit buďto hru anebo vycvičit neuronovou síť.
-
+### Functionality
+#### Main Menu
+Upon launching the program, the user is greeted by the main menu, from which they can either start the game or train the neural network.
 
 ![main menu](./pictures/main_menu.png)
-#### Hra
-- V nabídce "play" si může uživatel zahrát hru kliknutím na "play game" - ovládání hada pomocí šipek
-- Anebo nechat umělou intelingenci si zahrát hru kliknutím na "play AI"
-- Při volbě "play AI" uživatel načte vycvičenou neuronovou síť ze souboru
-
+#### Game
+- In the "play" menu, the user can play the game by clicking on "play game" - controlling the snake using the arrows.
+- Or let artificial intelligence play the game by clicking on "play AI."
+- When choosing "play AI," the user loads the trained neural network from a file.
 
 ![play menu](./pictures/play.png)
-#### Vycvičení neuronové sítě
-- V nabídce "Evolve ANN" může uživatel vycvičit neuronovou síť pomocí genetického algoritmu
-- Lze vytvořit novou populaci anebo načíst ze souboru a pokračovat ve cvičení
-
+#### Training the Neural Network
+- In the "Evolve ANN" menu, the user can train the neural network using the genetic algorithm.
+- You can create a new population or load it from a file and continue training.
 
 ![evolve menu](./pictures/evolve.png)
 ![evolution](./pictures/evolve_game.png)
-### Nastavení
-- Nastavení hry lze měnit v souboru /utils/constants.py
-- Nejzajímavější položky jsou:
-    - MAP_SIZE: velikost hrací plochy
-    - HIDDEN_LAYERS: konfigurace schovaných vrstvev neuronových sítí
-    - POPULATION_SIZE: velikost populace
-    - MUTATION_RATE: pravděpodobnost mutace
-    - MOVES_LEFT: počet pohybů, které může had vykonat bez snězení jablka
+### Settings
+- The game settings can be changed in the /utils/constants.py file.
+- The most interesting items are:
+    - MAP_SIZE: playing field size.
+    - HIDDEN_LAYERS: configuration of hidden layers in neural networks.
+    - POPULATION_SIZE: population size.
+    - MUTATION_RATE: mutation probability.
+    - MOVES_LEFT: the number of moves the snake can make without eating an apple.
 ```python
 # GAME SETTINGS
 NEURAL_NETWORK_WINDOW_SIZE = 600
@@ -300,6 +207,6 @@ COLOR_BLACK = (0, 0, 0)
 COLOR_RED = (255, 0, 0)
 COLOR_GREEN = (0, 255, 0)
 ```
-### Ukázka
-- Ve složce ./bi-zum-ulohy/Semestralni_uloha/data/ naleznete vycvičené neuronové sítě, které si můžete spustit nebo dále vycvičit
-- Ve složce ./bi-zum-ulohy/Semestralni_uloha/demo/ naleznete video demonstraci programu
+### Sample
+- In the folder `./bi-zum-ulohy/Semestralni_uloha/data/`, you will find trained neural networks that you can run or continue to train.
+- In the folder `./bi-zum-ulohy/Semestralni_uloha/demo/`, you will find a video demonstration of the program.
